@@ -15,10 +15,19 @@ export default class Blockchain {
         this.blocks = [new Block(this.nextIndex, "", "Genesis Block")];
     }
 
+    /**
+     * Get last block
+     * @returns Last block
+     */
     getLastBlock(): Block {
         return this.blocks[this.blocks.length - 1];
     }
 
+    /**
+     * Add block into the blockchain
+     * @param block block to be added
+     * @returns valitation with success true if the block is valid and false with a message if block is not valid
+     */
     addBlock(block: Block): Validation {
         const lastBlock = this.getLastBlock();
         const validation = block.isValid(lastBlock.hash, lastBlock.index);
@@ -28,6 +37,7 @@ export default class Blockchain {
 
         this.blocks.push(block);
         this.nextIndex++;
+
         return new Validation();
     }
 
