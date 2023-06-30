@@ -12,24 +12,24 @@ describe("Block tests", () => {
 
     test('Should not be valid (index not valid)', () => {
         const block = new Block(-1, genesis.hash, "hash2");
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeFalsy();
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (hash not valid)', () => {
         const block = new Block(1, genesis.hash, "hash2");
         block.hash = "";
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeFalsy();
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (data not valid)', () => {
         const block = new Block(1, genesis.hash, "");
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeFalsy();
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (timestamp not valid)', () => {
@@ -37,22 +37,22 @@ describe("Block tests", () => {
         block.timestamp = -1;
         //update hash after changing timestamp.
         block.hash = block.getHash();
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeFalsy();
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (previous hash not valid)', () => {
         const block = new Block(1, "hash1", "hash2");
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeFalsy();
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should be valid', () => {
         const block = new Block(1, genesis.hash, "hash2");
-        const valid = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index);
 
-        expect(valid).toBeTruthy();
+        expect(validation.success).toBeTruthy();
     });
 })
