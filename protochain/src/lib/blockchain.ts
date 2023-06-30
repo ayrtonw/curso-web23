@@ -33,12 +33,21 @@ export default class Blockchain {
         const validation = block.isValid(lastBlock.hash, lastBlock.index);
 
         if (!validation.success)
-        return new Validation(false, `Invalid block: ${validation.message}`);
+            return new Validation(false, `Invalid block: ${validation.message}`);
 
         this.blocks.push(block);
         this.nextIndex++;
 
         return new Validation();
+    }
+
+    /**
+     * Get specific block from blockchain
+     * @param hash Hash to search
+     * @returns Requested Block or undefined if not found
+     */
+    getBlock(hash: string): Block | undefined {
+        return this.blocks.find(b => b.hash === hash);
     }
 
     isValid(): Validation {
