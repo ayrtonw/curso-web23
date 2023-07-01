@@ -7,7 +7,10 @@ const PORT: number = 3000;
 
 const app = express();
 
-app.use(morgan('tiny'));
+//don't start for tests.
+if(process.argv.includes("--run"))
+    app.use(morgan('tiny'));
+
 app.use(express.json());
 
 const blockchain = new Blockchain();
@@ -46,8 +49,13 @@ app.post('/blocks', (req, res, next) => {
         res.status(400).json(validation)
 })
 
+//don't start for tests.
+if(process.argv.includes("--run")){
+    app.listen(PORT, () => {
+        console.log(`Blockchain server is running at ${PORT}`);
+    })
+}
 
-
-app.listen(PORT, () => {
-    console.log(`Blockchain server is running at ${PORT}`);
-})
+export {
+    app
+}

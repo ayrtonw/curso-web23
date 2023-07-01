@@ -1,21 +1,23 @@
 import Block from "./block";
-import Validation from './validation';
+import Validation from '../validation';
 
 /**
- * Blockchain class
+ * Mocked blockchain class
  */
 export default class Blockchain {
     blocks: Block[];
     nextIndex: number = 0;
 
     /**
-     * Creates a new Blockchain
+     * Creates a new mock Blockchain
      */
     constructor() {
         this.blocks = [new Block({
-            index: this.nextIndex,
+            index: 0,
+            hash: 'samplehash',
             previousHash: "",
-            data: "Genesis Block"
+            data: "Genesis Block",
+            timestamp: Date.now()
         } as Block)];
         this.nextIndex++
     }
@@ -34,12 +36,8 @@ export default class Blockchain {
      * @returns valitation with success true if the block is valid and false with a message if block is not valid
      */
     addBlock(block: Block): Validation {
-        const lastBlock = this.getLastBlock();
-        const validation = block.isValid(lastBlock.hash, lastBlock.index);
-
-        if (!validation.success)
-            return new Validation(false, `Invalid block: ${validation.message}`);
-
+        if(block.index < 0) return new Validation(false,"Invalid mock block");
+        
         this.blocks.push(block);
         this.nextIndex++;
 
@@ -56,14 +54,6 @@ export default class Blockchain {
     }
 
     isValid(): Validation {
-        //Walks through blocks array backwards
-        for (let i = this.blocks.length - 1; i > 0; i--) {
-            const currentBlock = this.blocks[i];
-            const previousBlock = this.blocks[i - 1];
-            const validation = currentBlock.isValid(previousBlock.hash, previousBlock.index);
-            if (!validation.success)
-                return new Validation(false, `Invalid block #${currentBlock.index}: ${validation.message}`);
-        }
-        return new Validation();
+             return new Validation();
     }
 }
