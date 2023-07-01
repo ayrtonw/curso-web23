@@ -25,11 +25,12 @@ describe("Block tests", () => {
 
     test('Should not be valid (hash not valid)', () => {
         const block = new Block({
-            index: -1,
+            index: 1,
             previousHash: genesis.hash,
             data: "Block 2",
-            hash: ""
+            hash: "fakehash"
         } as Block);
+
         const validation = block.isValid(genesis.hash, genesis.index);
 
         expect(validation.success).toBeFalsy();
