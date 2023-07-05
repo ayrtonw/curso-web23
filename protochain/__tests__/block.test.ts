@@ -3,7 +3,9 @@ import Block from '../src/lib/block';
 
 //cria suite de testes
 describe("Block tests", () => {
-
+    const exampledificult = 0;
+    const exampledMiner = "ayrtonwallet-sample" 
+    
     let genesis: Block;
 
     beforeAll(() => {
@@ -18,20 +20,34 @@ describe("Block tests", () => {
             previousHash: genesis.hash,
             data: "Block 2"
         } as Block);
-        const validation = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });
 
-    test('Should not be valid (hash not valid)', () => {
+    test('Should not be valid (empty hash)', () => {
         const block = new Block({
             index: 1,
             previousHash: genesis.hash,
             data: "Block 2",
-            hash: "fakehash"
         } as Block);
 
-        const validation = block.isValid(genesis.hash, genesis.index);
+        block.mine(exampledificult, exampledMiner);
+        block.hash = "";
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+
+        expect(validation.success).toBeFalsy();
+    });
+
+    test('Should not be valid (no mined)', () => {
+        const block = new Block({
+            index: 1,
+            previousHash: genesis.hash,
+            data: "Block 2",
+        } as Block);
+
+        block.hash = "";
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });
@@ -42,7 +58,7 @@ describe("Block tests", () => {
             previousHash: genesis.hash,
             data: ""
         } as Block);
-        const validation = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });
@@ -56,7 +72,7 @@ describe("Block tests", () => {
         } as Block);      
         // //update hash after changing timestamp.
         // block.hash = block.getHash();
-        const validation = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });
@@ -67,7 +83,7 @@ describe("Block tests", () => {
             previousHash: 'hash1',
             data: 'Block 2'
         } as Block);
-        const validation = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });
@@ -78,14 +94,14 @@ describe("Block tests", () => {
             previousHash: genesis.hash,
             data: "BLock 2"
         } as Block);
-        const validation = block.isValid(genesis.hash, genesis.index);
-
+        block.mine(exampledificult, exampledMiner);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);   
         expect(validation.success).toBeTruthy();
     });
 
     test('Should NOT be valid (fallbacks)', () => {
         const block = new Block();
-        const validation = block.isValid(genesis.hash, genesis.index);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
 
         expect(validation.success).toBeFalsy();
     });

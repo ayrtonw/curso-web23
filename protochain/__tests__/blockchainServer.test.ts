@@ -3,7 +3,7 @@ import { describe, test, expect, jest } from '@jest/globals'
 import { app } from '../src/server/blockchainServer';
 import Block from '../src/lib/block';
 
-//mock block class
+//mock classes
 jest.mock('../src/lib/block');
 jest.mock('../src/lib/blockchain');
 

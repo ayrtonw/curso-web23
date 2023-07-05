@@ -65,6 +65,7 @@ export default class Block {
         if (!this.data) return new Validation(false, "Invalid data.");
         if (this.timestamp < 1) return new Validation(false, "Invalid timestamp.");
         if (this.previousHash !== previousHash) return new Validation(false, "Invalid previous hash.");
+        if (!this.nonce || !this.miner) return new Validation(false, "No mined");
 
         const prefix = new Array(difficulty + 1).join("0");
         if (this.hash !== this.getHash() || !this.hash.startsWith(prefix))
