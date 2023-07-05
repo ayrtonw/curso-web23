@@ -35,7 +35,6 @@ export default class Block {
         return sha256(this.index + this.data + this.timestamp + this.previousHash + this.nonce + this.miner).toString();
     }
 
-
     /**
      * Generates a new valid hash for this block with the specified difficulty
      *
