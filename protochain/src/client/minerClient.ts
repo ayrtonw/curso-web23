@@ -1,13 +1,18 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import axios from "axios";
 import BlockInfo from "../lib/blockInfo";
 import Block from "../lib/block";
 
-const BLOCKCHAIN_SERVER = 'http://localhost:3000/'
+const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
 
-const minerWaller = {
+const minerWallet = {
     privateKey: "12345",
-    publicKey: "ayrton-sample-public-ley"
+    publicKey: `${process.env.MINER_WALLET}`
 }
+
+console.log("Logged as " + minerWallet.publicKey);
 
 let totalMined = 0;
 
@@ -21,7 +26,7 @@ async function mine() {
     //TODO: add rewards tx
 
     console.log("Start mining block #" + blockInfo.index);
-    newBlock.mine(blockInfo.difficulty, minerWaller.publicKey);
+    newBlock.mine(blockInfo.difficulty, minerWallet.publicKey);
 
     console.log('Block mined! Sending to blockchain...');
 
