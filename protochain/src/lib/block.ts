@@ -1,5 +1,6 @@
 import sha256 from 'crypto-js/sha256';
 import Validation from './validation';
+import BlockInfo from './blockInfo';
 
 /**
  * Block class
@@ -41,15 +42,15 @@ export default class Block {
      * @param difficulty The blockchain current difficulty
      * @param miner The miner wallet address
      */
-    mine(difficulty: number, miner: string){
+    mine(difficulty: number, miner: string) {
         this.miner = miner;
         const prefix = new Array(difficulty + 1).join("0");
 
-        do{
+        do {
             this.nonce++;
             this.hash = this.getHash();
 
-        }while(!this.hash.startsWith(prefix));
+        } while (!this.hash.startsWith(prefix));
     }
 
     /**
@@ -71,5 +72,13 @@ export default class Block {
             return new Validation(false, "Invalid hash.");
 
         return new Validation();
+    }
+
+    static fromBlockInfo(blockInfo: BlockInfo): Block {
+        const block = new Block();
+        block.index = blockInfo.index;
+        block.previousHash = blockInfo.previousHash;
+        block.data = blockInfo.data;
+        return block;
     }
 }
