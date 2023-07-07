@@ -1,9 +1,11 @@
 import { describe, test, expect, jest } from '@jest/globals';
 import Block from '../src/lib/block';
 import Blockchain from '../src/lib/blockchain';
+import Transaction from '../src/lib/transaction';
 
 //mock block class
 jest.mock('../src/lib/block');
+jest.mock('../src/lib/transaction');
 
 //cria suite de testes
 describe("Blockchain tests", () => {
@@ -23,7 +25,9 @@ describe("Blockchain tests", () => {
         blockchain.addBlock(new Block({
             index: 1,
             previousHash: blockchain.blocks[0].hash,
-            data: "Block 2"
+            transactions: [new Transaction({
+                data: "Block 2"
+            } as Transaction)]
         } as Block));
         expect(blockchain.isValid().success).toEqual(true);
     });
@@ -33,11 +37,12 @@ describe("Blockchain tests", () => {
         blockchain.addBlock(new Block({
             index: 1,
             previousHash: blockchain.blocks[0].hash,
-            data: "Block 2"
+            transactions: [new Transaction({
+                data: "Block 2"
+            } as Transaction)]
         } as Block));
 
         //make mock block invalid
-        blockchain.blocks[1].data = "a transfer 2 to b";
         blockchain.blocks[1].index = -1;
         
         expect(blockchain.isValid().success).toEqual(false);
@@ -48,7 +53,9 @@ describe("Blockchain tests", () => {
         const result = blockchain.addBlock(new Block({
             index: 1,
             previousHash: blockchain.blocks[0].hash,
-            data: "Block 2"
+            transactions: [new Transaction({
+                data: "Block 2"
+            } as Transaction)]
         } as Block));
         expect(result.success).toEqual(true);
     });
@@ -64,7 +71,9 @@ describe("Blockchain tests", () => {
         const result = blockchain.addBlock(new Block({
             index: -1,
             previousHash: blockchain.blocks[0].hash,
-            data: "Block 2"
+            transactions: [new Transaction({
+                data: "Block 2"
+            } as Transaction)]
         } as Block));
         expect(result.success).toEqual(false);
     });
