@@ -2,6 +2,7 @@ import request from 'supertest';
 import { describe, test, expect, jest } from '@jest/globals'
 import { app } from '../src/server/blockchainServer';
 import Block from '../src/lib/block';
+import Transaction from '../src/lib/transaction';
 
 //mock classes
 jest.mock('../src/lib/block');
@@ -19,10 +20,10 @@ describe('BlockchainServer Tests', () => {
 
     test('GET /blocks/:indexOrHash - Should get genesis', async () => {
         const response = await request(app)
-            .get('/blocks/next');
+            .get('/blocks/0');
 
         expect(response.status).toEqual(200);
-        expect(response.body.index).toEqual(1);
+        expect(response.body.index).toEqual(0);
     })
 
     test('GET /blocks/next - Should get next block info', async () => {
@@ -77,5 +78,25 @@ describe('BlockchainServer Tests', () => {
             .send(block);
 
         expect(response.status).toEqual(400);
+    })
+
+    test('GET /transactions/:hash - Should get transaction', async () => {
+        const response = await request(app)
+            .get('/transactions/samplehash');
+
+        expect(response.status).toEqual(200);
+        expect(response.body.mempoolIndex).toEqual(0);
+    })
+
+    test('POST /transactions/ - Should add tx', async () => {
+        const tx = new Transaction({
+            data: "tx1"
+        } as Transaction);
+
+        const response = await request(app)
+            .post('/transactions/')
+            .send(tx);
+
+        expect(response.status).toEqual(201);
     })
 })
