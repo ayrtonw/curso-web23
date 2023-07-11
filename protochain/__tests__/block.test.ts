@@ -126,7 +126,7 @@ describe("Block tests", () => {
         expect(validation.success).toBeTruthy();
     });
 
-    test('Should create from blockinfo', () => {
+    test('Should create from block info', () => {
         const block = Block.fromBlockInfo({
             transactions: [new Transaction({
                 txInput: new TransactionInput()
@@ -170,13 +170,17 @@ describe("Block tests", () => {
         expect(validation.success).toBeFalsy();
     });
 
-    test('Should NOT be valid (Invalid tx)', () => {
+    test('Should NOT be valid (invalid tx)', () => {
         const block = new Block({
             index: 1,
             previousHash: genesis.hash,
             transactions: [new Transaction()]
         } as Block);
         block.mine(exampledificult, exampledMiner);
+
+        //make tx invalid on the mock class
+        block.transactions[0].to = ""
+        
         const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
         expect(validation.success).toBeFalsy();
     });
