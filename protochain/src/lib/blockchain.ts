@@ -47,6 +47,15 @@ export default class Blockchain {
     }
 
     addTransaction(transaction: Transaction): Validation {
+        if (transaction.txInput) {
+            const from = transaction.txInput.fromAddres;
+            const pendingTx = this.mempool.map(tx => tx.txInput).filter(txi => txi?.fromAddres === from);
+            if (pendingTx && pendingTx.length)
+                return new Validation(false, `This wallet has a pending transaction.`);
+
+            //TODO: validar a origem dos fundos.
+        }
+
         const validation = transaction.isValid();
         if (!validation.success)
             return new Validation(false, "Invalid tx: " + validation.message);
