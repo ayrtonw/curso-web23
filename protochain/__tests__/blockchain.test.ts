@@ -66,11 +66,22 @@ describe("Blockchain tests", () => {
 
     test('Should add transaction', () => {
         const blockchain = new Blockchain(alice.publicKey);
+        const txo = blockchain.blocks[0].transactions[0];
 
-        const tx = new Transaction({
-            txInputs: [new TransactionInput()],
-            hash: "sample-hash-1"
-        } as Transaction);
+        const tx = new Transaction();
+        tx.hash = "sample-hash";
+        
+        tx.txInputs = [new TransactionInput({
+            amount: 10,
+            previousTx: txo.hash,
+            fromAddres: alice.publicKey,
+            signature: "sample-signature"
+        } as TransactionInput)];
+
+        tx.txOutputs = [new TransactionOutput({
+            amount: 10,
+            toAddress: "sample-hash"
+        } as TransactionOutput)];
 
         const validation = blockchain.addTransaction(tx);
 

@@ -10,13 +10,16 @@ jest.mock('../src/lib/transactionOutput');
 
 //cria suite de testes
 describe("Transaction tests", () => {
-    
+
+    const exampledificult: number = 1;
+    const exampleFee: number = 1;
+
     test('Should be valid (REGULAR default)', () => {
         const tx = new Transaction({
             txInputs: [new TransactionInput()],
             txOutputs: [new TransactionOutput()]
         } as Transaction);
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
 
         expect(validation.success).toBeTruthy();
     });
@@ -29,7 +32,7 @@ describe("Transaction tests", () => {
 
         tx.txOutputs[0].tx = "sample-wrong-hash"
 
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
@@ -43,41 +46,41 @@ describe("Transaction tests", () => {
             } as TransactionOutput)]
         } as Transaction);
 
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
     test('Should NOT be valid (invalid hash)', () => {
         const tx = new Transaction({
             txInputs: [new TransactionInput()],
-            txOutputs: [new TransactionOutput()], 
+            txOutputs: [new TransactionOutput()],
             type: TransactionType.REGULAR,
             timestamp: Date.now(),
             hash: 'invalid-hash-sample'
         } as Transaction);
 
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should be valid (FEE)', () => {
         const tx = new Transaction({
-            txOutputs: [new TransactionOutput()],  
+            txOutputs: [new TransactionOutput()],
             type: TransactionType.FEE
         } as Transaction);
 
         //make it undefined, FEE transactions don't need txInput
         tx.txInputs = undefined;
-        tx.hash= tx.getHash();
+        tx.hash = tx.getHash();
 
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeTruthy();
-    });   
+    });
 
     test('Should NOT be valid (invalid to)', () => {
         const tx = new Transaction();
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
@@ -90,7 +93,7 @@ describe("Transaction tests", () => {
                 signature: "sample-signature"
             } as TransactionInput)]
         } as Transaction);
-        const validation = tx.isValid();
+        const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 })

@@ -14,13 +14,16 @@ jest.mock('../src/lib/transactionOutput');
 
 //cria suite de testes
 describe("Block tests", () => {
-    const exampledificult = 1;
-    let alice: Wallet;
+    const exampledificult: number = 1;
+    const exampleFee: number = 1;
+    const exampleTx: string = "035e8bad4cab933a3b92d679fa1756da8f9deda2525fb66ca20d6477d2e092c7fe"
+    let alice: Wallet, bob: Wallet;
 
     let genesis: Block;
 
     beforeAll(() => {
         alice = new Wallet();
+        bob = new Wallet();
 
         genesis = new Block({
             transactions: [new Transaction({
@@ -29,208 +32,110 @@ describe("Block tests", () => {
         } as Block);
     })
 
-    test('Should NOT be valid (index not valid)', () => {
-        const block = new Block({
-            index: -1,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[]
-        } as Block);
+    function getFullBlock(): Block {
+        //build sample txIn
+        const txIn = new TransactionInput({
+            amount: 10,
+            fromAddres: alice.publicKey,
+            previousTx: exampleTx
+        } as TransactionInput);
 
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
+        txIn.sign(alice.privateKey);
+
+        //build sample txOut
+        const txOut = new TransactionOutput({
+            amount: 10,
+            toAddress: bob.publicKey
+        } as TransactionOutput);
+
+        //build regutar tx
+        const tx = new Transaction({
+            txInputs: [txIn],
+            txOutputs: [txOut]
+        } as Transaction);
+
+        //build fee tx
+        const txFee = new Transaction({
             type: TransactionType.FEE,
             txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
+                amount: 1,
+                toAddress: alice.publicKey
             } as TransactionOutput)]
-        } as Transaction));
+        } as Transaction);
 
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
+        //generate block
+        const block = new Block({
+            index: 1,
+            transactions: [tx, txFee],
+            previousHash: genesis.hash
+        } as Block);
+
+        //mine block
         block.mine(exampledificult, alice.publicKey);
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        return block;
+    }
+
+    test('Should NOT be valid (index not valid)', () => {
+        const block = getFullBlock();
+        block.index = -1;
+
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (empty hash)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [new Transaction({
-                txInputs: [new TransactionInput()]
-            } as Transaction)]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
-
-        block.mine(exampledificult, alice.publicKey);
+        const block = getFullBlock();
         block.hash = "";
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should not be valid (no mined)', () => {
-        const block = new Block({
-            index: 1,
-            nonce: 0,
-            miner: alice.publicKey,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[]
-        } as Block);
+        const block = getFullBlock();
+        block.nonce = 0;
 
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
-
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
-
-    test('Should NOT be valid (txInput)', () => {
-        const txInputs = [new TransactionInput()];
-        txInputs[0].amount = -1;
-
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [new Transaction({
-                txInputs
-            } as Transaction)]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
-
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
-
-        expect(validation.success).toBeFalsy();
-    });
-
+ 
     test('Should NOT be valid (timestamp not valid)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[],
-            timestamp: -1
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
+        const block = getFullBlock();
+        block.timestamp = -1;
         block.mine(exampledificult, alice.publicKey);
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should NOT be valid (previous hash not valid)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: 'hash1',
-            transactions: [] as Transaction[]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
+        const block = getFullBlock();
+        block.previousHash = "sample-fake-hash";
         block.mine(exampledificult, alice.publicKey);
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should be valid', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
-
-        block.mine(exampledificult, alice.publicKey);
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const block = getFullBlock();
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeTruthy();
     });
 
     test('Should NOT be valid (different hash)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
-        block.hash = block.getHash();
-
-        block.mine(exampledificult, alice.publicKey);
+        const block = getFullBlock();
 
         //change hash to make block invalid
         block.hash = "sample-fake-hash"
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
@@ -244,7 +149,7 @@ describe("Block tests", () => {
         } as Block);
 
         block.mine(exampledificult, alice.publicKey);
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
@@ -259,19 +164,21 @@ describe("Block tests", () => {
         } as BlockInfo);
 
         //add fee transaction to the block.
-        block.transactions.push(new Transaction({
+        const tx = new Transaction({
             type: TransactionType.FEE,
             txOutputs: [new TransactionOutput({
                 toAddress: alice.publicKey,
                 amount: 1
-            }as TransactionOutput)]
-        } as Transaction));
+            } as TransactionOutput)]
+        } as Transaction);
+
+        block.transactions.push(tx);
 
         //regenerate block hash after adding fee transaction.
         block.hash = block.getHash();
 
         block.mine(exampledificult, alice.publicKey);
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeTruthy();
     });
 
@@ -287,54 +194,36 @@ describe("Block tests", () => {
         //regenerate block hash after adding fee transaction.
         block.hash = block.getHash();
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
 
         expect(validation.success).toBeFalsy();
     });
 
     test('Should NOT be valid (2 FEE transactions)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [
-                new Transaction({
-                    type: TransactionType.FEE,
-                    txInputs: [new TransactionInput()]
-                } as Transaction),
-                new Transaction({
-                    type: TransactionType.FEE,
-                    txInputs: [new TransactionInput()]
-                } as Transaction)
-            ]
-        } as Block);
+        const block = getFullBlock();
+
+        //add seccond fee transaction
+        const tx = new Transaction({
+            type: TransactionType.FEE,
+            txOutputs: [new TransactionOutput()]
+        } as Transaction);
+        tx.txInputs = undefined;
+
+        block.transactions.push(tx);
+
         block.mine(exampledificult, alice.publicKey);
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 
     test('Should NOT be valid (invalid tx)', () => {
-        const block = new Block({
-            index: 1,
-            previousHash: genesis.hash,
-            transactions: [] as Transaction[]
-        } as Block);
-
-        //add fee transaction to the block.
-        block.transactions.push(new Transaction({
-            type: TransactionType.FEE,
-            timestamp: -1,
-            txOutputs: [new TransactionOutput({
-                toAddress: alice.publicKey,
-                amount: 1
-            } as TransactionOutput)]
-        } as Transaction));
-
-        //regenerate block hash after adding fee transaction.
+        const block = getFullBlock();
+        block.transactions[0].timestamp = -1;
         block.hash = block.getHash();
-
         block.mine(exampledificult, alice.publicKey);
 
-        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
     });
 })
