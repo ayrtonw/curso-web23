@@ -1,3 +1,4 @@
+import TransactionOutput from '../transactionOutput';
 import Validation from '../validation';
 
 /**
@@ -9,10 +10,10 @@ export default class TransactionInput {
     signature: string;
     previousTx: string;
 
-  /**
-   * Creates a new TransactionInput
-   * @param txInput the tx input data
-   */
+    /**
+     * Creates a new TransactionInput
+     * @param txInput the tx input data
+     */
     constructor(txInput?: TransactionInput) {
         this.previousTx = txInput?.previousTx || "sample-previous-tx-from-mock-class";
         this.fromAddres = txInput?.fromAddres || "sample-from-address-from-mock-class";
@@ -47,6 +48,6 @@ export default class TransactionInput {
         if (this.amount < 1)
             return new Validation(false, "Amout must be greater than zero.");
 
-        return  new Validation();
+        return new Validation();
     }
 }

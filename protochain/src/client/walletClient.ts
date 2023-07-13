@@ -83,7 +83,7 @@ function recoverWallet() {
     });
 }
 
-function getBalance() {
+async function getBalance() {
     console.clear();
 
     if (!myWalletPub) {
@@ -91,8 +91,8 @@ function getBalance() {
         return preMenu();
     }
 
-    //TODO: get balance via API.
-
+    const { data } = await axios.get(`${BLOCKCHAIN_SERVER}wallets/${myWalletPub}`);
+    console.log("Balance: " + data.balance);
     preMenu();
 }
 
@@ -124,28 +124,42 @@ function sendTx() {
             const utxo = walletResponse.data.utxo as TransactionOutput[];
 
             //balance validation
-            if(balance < amount + fee){
+            if (balance < amount + fee) {
                 console.log("Insufficient balance (tx + fee)");
                 return preMenu();
             }
 
-            //create transaction object
-            const tx = new Transaction();
-            tx.timestamp = Date.now();
-            tx.txOutputs = [new TransactionOutput({
+            //para cada gasto passado que ainda nao gastei irei gerar um gasto presente.
+            const txInputs = utxo.map(txo => TransactionInput.fromTxo(txo));
+
+            //sign inputs
+            txInputs.forEach((txi, index, arr) => arr[index].sign(myWalletPriv));
+
+            //sainda de transacao de transferencia
+            const txOutputs = [] as TransactionOutput[];
+            txOutputs.push(new TransactionOutput({
                 toAddress: toWallet,
                 amount
-            } as TransactionOutput)];
-            tx.type = TransactionType.REGULAR;
-            tx.txInputs = [new TransactionInput({
-                amount,
-                fromAddres: myWalletPub,
-                previousTx: utxo[0].tx
-            } as TransactionInput)];
+            } as TransactionOutput));
 
-            tx.txInputs[0].sign(myWalletPriv);
+            //sainda de transacao de troco
+            const remainingBalance = balance - amount - fee;
+            txOutputs.push(new TransactionOutput({
+                toAddress: myWalletPub,
+                amount: remainingBalance
+            } as TransactionOutput));
+
+            //create transaction object
+            const tx = new Transaction({
+                txInputs,
+                txOutputs
+            } as Transaction);
+
             tx.hash = tx.getHash();
-            tx.txOutputs[0].tx = tx.hash;
+            tx.txOutputs.forEach((txo, index, arr) => arr[index].tx = tx.hash);
+
+            console.log(tx);
+            console.log("Remaining balance: " + remainingBalance);
 
             try {
                 const txResponse = await axios.post(`${BLOCKCHAIN_SERVER}transactions/`, tx);
@@ -156,7 +170,6 @@ function sendTx() {
             }
 
             return preMenu();
-
         });
     });
 
