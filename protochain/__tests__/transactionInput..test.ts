@@ -16,7 +16,8 @@ describe("TransactionInput tests", () => {
     test('Should be valid', () => {
         const txInput = new TransactionInput({
             amount: 10,
-            fromAddres: alice.publicKey
+            fromAddres: alice.publicKey,
+            previousTx: "sample-hash"
         } as TransactionInput);
 
         txInput.sign(alice.privateKey);

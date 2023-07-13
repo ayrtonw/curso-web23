@@ -2,17 +2,19 @@ import { describe, test, expect, jest } from '@jest/globals';
 import Transaction from '../src/lib/transaction';
 import TransactionType from '../src/lib/transactionType';
 import TransactionInput from '../src/lib/transactionInput';
+import TransactionOutput from '../src/lib/transactionOutput';
 
 //mock block class
 jest.mock('../src/lib/transactionInput');
+jest.mock('../src/lib/transactionOutput');
 
 //cria suite de testes
 describe("Transaction tests", () => {
     
     test('Should be valid (REGULAR default)', () => {
         const tx = new Transaction({
-            txInput: new TransactionInput(),
-            to: "sample-hash-to"  
+            txInputs: [new TransactionInput()],
+            txOutputs: [new TransactionOutput()]
         } as Transaction);
         const validation = tx.isValid();
 
@@ -21,8 +23,8 @@ describe("Transaction tests", () => {
 
     test('Should NOT be valid (invalid hash)', () => {
         const tx = new Transaction({
-            txInput: new TransactionInput(),
-            to: "sample-hash-to",  
+            txInputs: [new TransactionInput()],
+            txOutputs: [new TransactionOutput()], 
             type: TransactionType.REGULAR,
             timestamp: Date.now(),
             hash: 'invalid-hash-sample'
@@ -35,12 +37,12 @@ describe("Transaction tests", () => {
 
     test('Should be valid (FEE)', () => {
         const tx = new Transaction({
-            to: "sample-hash-to",  
+            txOutputs: [new TransactionOutput()],  
             type: TransactionType.FEE
         } as Transaction);
 
         //make it undefined, FEE transactions don't need txInput
-        tx.txInput = undefined;
+        tx.txInputs = undefined;
         tx.hash= tx.getHash();
 
         const validation = tx.isValid();
@@ -55,12 +57,12 @@ describe("Transaction tests", () => {
 
     test('Should NOT be valid (invalid txInput)', () => {
         const tx = new Transaction({
-            to: "sample-hash-to",
-            txInput: new TransactionInput({
+            txOutputs: [new TransactionOutput()],
+            txInputs: [new TransactionInput({
                 amount: -10,
                 fromAddres: "sample-hash-from",
                 signature: "sample-signature"
-            } as TransactionInput)
+            } as TransactionInput)]
         } as Transaction);
         const validation = tx.isValid();
         expect(validation.success).toBeFalsy();
