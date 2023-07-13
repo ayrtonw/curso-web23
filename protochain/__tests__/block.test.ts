@@ -33,15 +33,16 @@ describe("Block tests", () => {
         const block = new Block({
             index: -1,
             previousHash: genesis.hash,
-            transactions: [new Transaction({
-                txInputs: [new TransactionInput()]
-            } as Transaction)]
+            transactions: [] as Transaction[]
         } as Block);
 
         //add fee transaction to the block.
         block.transactions.push(new Transaction({
             type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
         } as Transaction));
 
         //regenerate block hash after adding fee transaction.
@@ -84,15 +85,16 @@ describe("Block tests", () => {
             nonce: 0,
             miner: alice.publicKey,
             previousHash: genesis.hash,
-            transactions: [new Transaction({
-                txInputs: [new TransactionInput()]
-            } as Transaction)]
+            transactions: [] as Transaction[]
         } as Block);
 
         //add fee transaction to the block.
         block.transactions.push(new Transaction({
             type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
         } as Transaction));
 
         //regenerate block hash after adding fee transaction.
@@ -133,16 +135,17 @@ describe("Block tests", () => {
         const block = new Block({
             index: 1,
             previousHash: genesis.hash,
-            transactions: [new Transaction({
-                txInputs: [new TransactionInput()]
-            } as Transaction)],
+            transactions: [] as Transaction[],
             timestamp: -1
         } as Block);
 
         //add fee transaction to the block.
         block.transactions.push(new Transaction({
             type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
         } as Transaction));
 
         //regenerate block hash after adding fee transaction.
@@ -158,15 +161,16 @@ describe("Block tests", () => {
         const block = new Block({
             index: 1,
             previousHash: 'hash1',
-            transactions: [new Transaction({
-                txInputs: [new TransactionInput()]
-            } as Transaction)]
+            transactions: [] as Transaction[]
         } as Block);
 
         //add fee transaction to the block.
         block.transactions.push(new Transaction({
             type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
         } as Transaction));
 
         //regenerate block hash after adding fee transaction.
@@ -200,6 +204,34 @@ describe("Block tests", () => {
         block.mine(exampledificult, alice.publicKey);
         const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
         expect(validation.success).toBeTruthy();
+    });
+
+    test('Should NOT be valid (different hash)', () => {
+        const block = new Block({
+            index: 1,
+            previousHash: genesis.hash,
+            transactions: [] as Transaction[]
+        } as Block);
+
+        //add fee transaction to the block.
+        block.transactions.push(new Transaction({
+            type: TransactionType.FEE,
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
+        } as Transaction));
+
+        //regenerate block hash after adding fee transaction.
+        block.hash = block.getHash();
+
+        block.mine(exampledificult, alice.publicKey);
+
+        //change hash to make block invalid
+        block.hash = "sample-fake-hash"
+
+        const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
+        expect(validation.success).toBeFalsy();
     });
 
     test('Should NOT be valid (no fee)', () => {
@@ -284,22 +316,23 @@ describe("Block tests", () => {
         const block = new Block({
             index: 1,
             previousHash: genesis.hash,
-            transactions: [new Transaction()]
+            transactions: [] as Transaction[]
         } as Block);
 
         //add fee transaction to the block.
         block.transactions.push(new Transaction({
             type: TransactionType.FEE,
-            txOutputs: [new TransactionOutput()]
+            timestamp: -1,
+            txOutputs: [new TransactionOutput({
+                toAddress: alice.publicKey,
+                amount: 1
+            } as TransactionOutput)]
         } as Transaction));
 
         //regenerate block hash after adding fee transaction.
         block.hash = block.getHash();
 
         block.mine(exampledificult, alice.publicKey);
-
-        //make tx invalid on the mock class
-        block.transactions[0].txOutputs[0].toAddress = ""
 
         const validation = block.isValid(genesis.hash, genesis.index, exampledificult);
         expect(validation.success).toBeFalsy();
