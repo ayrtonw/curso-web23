@@ -7,6 +7,7 @@ import Wallet from "../lib/wallet";
 import Transaction from '../lib/transaction';
 import TransactionType from '../lib/transactionType';
 import TransactionInput from '../lib/transactionInput';
+import TransactionOutput from '../lib/transactionOutput';
 
 const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
 
@@ -117,20 +118,34 @@ function sendTx() {
                 return preMenu();
             }
 
-            //TODO: balance validation
+            const walletResponse = await axios.get(`${BLOCKCHAIN_SERVER}wallets/${myWalletPub}`);
+            const balance = walletResponse.data.balance as number;
+            const fee = walletResponse.data.fee as number;
+            const utxo = walletResponse.data.utxo as TransactionOutput[];
+
+            //balance validation
+            if(balance < amount + fee){
+                console.log("Insufficient balance (tx + fee)");
+                return preMenu();
+            }
 
             //create transaction object
             const tx = new Transaction();
             tx.timestamp = Date.now();
-            tx.to = toWallet;
+            tx.txOutputs = [new TransactionOutput({
+                toAddress: toWallet,
+                amount
+            } as TransactionOutput)];
             tx.type = TransactionType.REGULAR;
-            tx.txInput = new TransactionInput({
+            tx.txInputs = [new TransactionInput({
                 amount,
-                fromAddres: myWalletPub
-            } as TransactionInput);
+                fromAddres: myWalletPub,
+                previousTx: utxo[0].tx
+            } as TransactionInput)];
 
-            tx.txInput.sign(myWalletPriv);
+            tx.txInputs[0].sign(myWalletPriv);
             tx.hash = tx.getHash();
+            tx.txOutputs[0].tx = tx.hash;
 
             try {
                 const txResponse = await axios.post(`${BLOCKCHAIN_SERVER}transactions/`, tx);
@@ -143,8 +158,6 @@ function sendTx() {
             return preMenu();
 
         });
-
-
     });
 
     preMenu();
