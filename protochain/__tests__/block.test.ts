@@ -16,7 +16,7 @@ jest.mock('../src/lib/transactionOutput');
 describe("Block tests", () => {
     const exampledificult: number = 1;
     const exampleFee: number = 1;
-    const exampleTx: string = "035e8bad4cab933a3b92d679fa1756da8f9deda2525fb66ca20d6477d2e092c7fe"
+    const exampleTx: string = "035e8bad4cab933a3b92d679fa1756da8f9deda2525fb66ca20d6477d2e092c7fe";
     let alice: Wallet, bob: Wallet;
 
     let genesis: Block;
