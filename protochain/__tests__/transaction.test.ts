@@ -1,8 +1,9 @@
-import { describe, test, expect, jest } from '@jest/globals';
+import { describe, test, expect, jest, beforeAll } from '@jest/globals';
 import Transaction from '../src/lib/transaction';
 import TransactionType from '../src/lib/transactionType';
 import TransactionInput from '../src/lib/transactionInput';
 import TransactionOutput from '../src/lib/transactionOutput';
+import Wallet from '../src/lib/wallet';
 
 //mock block class
 jest.mock('../src/lib/transactionInput');
@@ -13,6 +14,13 @@ describe("Transaction tests", () => {
 
     const exampledificult: number = 1;
     const exampleFee: number = 1;
+    const exampleTx: string = "035e8bad4cab933a3b92d679fa1756da8f9deda2525fb66ca20d6477d2e092c7fe";
+    let alice: Wallet, bob: Wallet;
+
+    beforeAll(() => {
+        alice = new Wallet();
+        bob = new Wallet();
+    })
 
     test('Should be valid (REGULAR default)', () => {
         const tx = new Transaction({
@@ -95,5 +103,65 @@ describe("Transaction tests", () => {
         } as Transaction);
         const validation = tx.isValid(exampledificult, exampleFee);
         expect(validation.success).toBeFalsy();
+    });
+
+    test('Should get fee', () => {
+        const txIn = new TransactionInput({
+            amount: 11,
+            fromAddres: alice.publicKey,
+            previousTx: exampleTx
+        } as TransactionInput);
+
+        txIn.sign(alice.privateKey);
+
+        const txOut = new TransactionOutput({
+            amount: 10,
+            toAddress: bob.publicKey
+        } as TransactionOutput);
+
+        const tx = new Transaction({
+            txInputs: [txIn],
+            txOutputs: [txOut]
+        } as Transaction);
+
+        const result = tx.getFee();
+
+        expect(result).toBeGreaterThan(0);
+    });
+
+    test('Should get zero fee', () => {
+        const tx = new Transaction();
+        tx.txInputs = undefined;
+        const result = tx.getFee();
+
+        expect(result).toEqual(0);
+    });
+
+    test('Should create from reward', () => {
+        const tx = Transaction.fromReward({
+            amount: 10,
+            toAddress: alice.publicKey,
+            tx: exampleTx
+        }as TransactionOutput);
+
+        const result = tx.isValid(exampledificult, exampleFee);
+
+        expect(result.success).toBeTruthy();
+    });
+
+    test('Should NOT be valid (fee excess)', () => {
+        const txOut = new TransactionOutput({
+            amount: Number.MAX_VALUE,
+            toAddress: bob.publicKey
+        } as TransactionOutput);
+
+        const tx = new Transaction({
+            type: TransactionType.FEE,
+            txOutputs: [txOut]
+        } as Transaction);
+
+        const result = tx.isValid(exampledificult, exampleFee);
+
+        expect(result.success).toBeFalsy();
     });
 })
